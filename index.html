@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>ماسح كروت الواي فاي - فندق روز عدن 1 | Rose Aden Hotel 1</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Cairo', Tahoma, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background: radial-gradient(circle at 50% 0%, #0d2857 0%, #07132c 45%, #030712 100%);
+            color: #f8fafc;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 14px;
+            direction: rtl;
+        }
+
+        .scanner-card {
+            width: 100%;
+            max-width: 420px;
+            background: rgba(8, 17, 38, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1.5px solid rgba(30, 96, 196, 0.4);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.75), 0 0 35px rgba(11, 77, 162, 0.25);
+            border-radius: 26px;
+            padding: 22px 18px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .scanner-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #c5a059, #0b4da2, #38b6ff);
+        }
+
+        .hotel-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(11, 77, 162, 0.25);
+            color: #38b6ff;
+            border: 1px solid rgba(56, 182, 255, 0.35);
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            font-size: 19px;
+            font-weight: 800;
+            color: #f8fafc;
+            margin-bottom: 4px;
+            text-shadow: 0 2px 8px rgba(11, 77, 162, 0.5);
+        }
+
+        .subtitle {
+            font-size: 12px;
+            color: #cbd5e1;
+            margin-bottom: 14px;
+            line-height: 1.5;
+        }
+
+        /* نافذة الكاميرا المباشرة */
+        .camera-container {
+            width: 100%;
+            max-width: 290px;
+            height: 290px;
+            margin: 0 auto 14px auto;
+            border-radius: 20px;
+            overflow: hidden;
+            position: relative;
+            background: #000;
+            border: 2px solid rgba(30, 96, 196, 0.5);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6), inset 0 0 20px rgba(11, 77, 162, 0.3);
+        }
+
+        #reader {
+            width: 100% !important;
+            height: 100% !important;
+            border: none !important;
+        }
+
+        #reader video {
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover !important;
+            border-radius: 18px;
+        }
+
+        .scan-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .laser-line {
+            width: 80%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #38b6ff, #f5cd5f, transparent);
+            box-shadow: 0 0 12px #38b6ff;
+            animation: laserScan 2s infinite ease-in-out;
+        }
+
+        @keyframes laserScan {
+            0% { transform: translateY(-110px); opacity: 0.2; }
+            50% { transform: translateY(110px); opacity: 1; }
+            100% { transform: translateY(-110px); opacity: 0.2; }
+        }
+
+        /* بطاقة خيارات قراءة الـ QR من ملف / لقطة شاشة */
+        .file-upload-section {
+            background: rgba(13, 24, 51, 0.85);
+            border: 1.5px dashed rgba(56, 182, 255, 0.45);
+            border-radius: 18px;
+            padding: 14px;
+            margin-bottom: 12px;
+            text-align: center;
+            transition: all 0.25s ease;
+        }
+
+        .file-upload-section:hover {
+            border-color: #c5a059;
+            background: rgba(16, 31, 66, 0.95);
+        }
+
+        .file-upload-title {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            font-size: 12.5px;
+            font-weight: 800;
+            color: #38b6ff;
+            margin-bottom: 10px;
+        }
+
+        .photo-btn-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .btn-photo-action {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            height: 44px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            outline: none;
+            text-decoration: none;
+        }
+
+        .btn-gallery {
+            background: linear-gradient(135deg, #0b4da2 0%, #1565c0 50%, #1e60c4 100%);
+            color: #ffffff !important;
+            border: 1px solid rgba(56, 182, 255, 0.4);
+            box-shadow: 0 4px 14px rgba(11, 77, 162, 0.4);
+        }
+
+        .btn-gallery:hover {
+            background: linear-gradient(135deg, #0d5bc2 0%, #1e6bd6 50%, #2575fc 100%);
+            transform: translateY(-1px);
+        }
+
+        .btn-snap {
+            background: linear-gradient(135deg, #071a3d 0%, #0b3c7e 100%);
+            color: #ffffff !important;
+            border: 1.5px solid rgba(197, 160, 89, 0.7);
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+        }
+
+        .btn-snap:hover {
+            border-color: #f5cd5f;
+            transform: translateY(-1px);
+        }
+
+        /* صندوق معاينة الصورة المرفوعة */
+        .preview-box {
+            display: none;
+            margin-top: 10px;
+            padding: 8px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 12px;
+            border: 1px solid rgba(56, 182, 255, 0.3);
+            text-align: center;
+        }
+
+        .preview-box img {
+            max-width: 100%;
+            max-height: 140px;
+            border-radius: 8px;
+            object-fit: contain;
+            display: block;
+            margin: 0 auto 6px auto;
+        }
+
+        .preview-filename {
+            font-size: 11px;
+            color: #cbd5e1;
+            word-break: break-all;
+        }
+
+        /* زر إعادة تشغيل الكاميرا المباشرة */
+        .resume-cam-row {
+            margin-top: 10px;
+        }
+
+        .btn-resume-cam {
+            width: 100%;
+            height: 40px;
+            background: rgba(30, 96, 196, 0.25);
+            border: 1px solid rgba(56, 182, 255, 0.4);
+            border-radius: 10px;
+            color: #38b6ff;
+            font-size: 12px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+
+        .btn-resume-cam:hover {
+            background: rgba(30, 96, 196, 0.4);
+            color: #fff;
+        }
+
+        /* صندوق Safari للآيفون */
+        .safari-box {
+            margin-bottom: 12px;
+        }
+
+        .btn-safari {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            height: 42px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+            color: #ffffff !important;
+            font-weight: 800;
+            font-size: 12.5px;
+            text-decoration: none;
+            box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35);
+        }
+
+        .controls-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .btn-action {
+            flex: 1;
+            height: 38px;
+            border-radius: 10px;
+            background: rgba(13, 24, 51, 0.85);
+            border: 1px solid rgba(30, 96, 196, 0.35);
+            color: #cbd5e1;
+            font-size: 11.5px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .btn-action:hover {
+            color: #fff;
+            border-color: #38b6ff;
+        }
+
+        .status-box {
+            background: rgba(13, 24, 51, 0.9);
+            border: 1px solid rgba(30, 96, 196, 0.3);
+            border-radius: 12px;
+            padding: 10px;
+            font-size: 12px;
+            color: #cbd5e1;
+            margin-bottom: 12px;
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1.4;
+        }
+
+        .btn-back {
+            display: block;
+            width: 100%;
+            height: 42px;
+            line-height: 40px;
+            border-radius: 12px;
+            background: rgba(13, 24, 51, 0.85);
+            border: 1px solid rgba(30, 96, 196, 0.35);
+            color: #f8fafc !important;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 800;
+            transition: all 0.2s ease;
+        }
+
+        .btn-back:hover {
+            background: rgba(16, 31, 66, 0.95);
+            border-color: #38b6ff;
+        }
+
+        /* تذييل برونت كمبيوتر */
+        .pronet-unified-footer {
+            width: 100%;
+            margin-top: 14px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(30, 96, 196, 0.25);
+            text-align: center;
+        }
+
+        .p-line-title {
+            font-size: 10px;
+            color: #94a3b8;
+            margin-bottom: 2px;
+        }
+
+        .p-line-company {
+            font-size: 11.5px;
+            color: #f8fafc;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+
+        .p-line-company b {
+            color: #38b6ff;
+        }
+
+        .p-line-address {
+            font-size: 10.5px;
+            color: #94a3b8;
+        }
+
+        .p-line-address a {
+            color: #c5a059;
+            text-decoration: none;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="scanner-card">
+        <div class="hotel-badge">
+            <span>🏨</span>
+            فندق روز عدن 1 السياحي
+        </div>
+
+        <h1>ماسح كروت الواي فاي الذكي</h1>
+        <p class="subtitle">امسح الكرت بالكاميرا أو اختر صورة كرت / لقطة شاشة (Screenshot)</p>
+
+        <!-- نافذة الكاميرا المباشرة -->
+        <div class="camera-container" id="cameraBox">
+            <div id="reader"></div>
+            <div class="scan-overlay">
+                <div class="laser-line"></div>
+            </div>
+        </div>
+
+        <!-- قسم قراءة الـ QR من ملف / لقطة شاشة / ألبوم الصور -->
+        <div class="file-upload-section">
+            <div class="file-upload-title">
+                <span>📁 قراءة الكرت من صورة أو لقطة شاشة (Screenshot)</span>
+            </div>
+            
+            <input type="file" id="qrCaptureInput" accept="image/*" capture="environment" style="display:none;">
+            <input type="file" id="qrGalleryInput" accept="image/*" style="display:none;">
+
+            <div class="photo-btn-row">
+                <button type="button" class="btn-photo-action btn-gallery" id="btnUploadPhoto" title="اختيار صورة أو لقطة شاشة للكرت من المعرض أو الملفات">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                        <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                        <polyline points="21 15 16 10 5 21"></polyline>
+                    </svg>
+                    <span>ألبوم الصور / لقطة شاشة</span>
+                </button>
+
+                <button type="button" class="btn-photo-action btn-snap" id="btnSnapPhoto" title="التقاط صورة للكرت بكاميرا الهاتف">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                        <circle cx="12" cy="13" r="4"></circle>
+                    </svg>
+                    <span>التقاط صورة فورية</span>
+                </button>
+            </div>
+
+            <!-- صندوق المعاينة -->
+            <div class="preview-box" id="previewBox">
+                <img id="previewImg" src="" alt="Card Screenshot Preview">
+                <div class="preview-filename" id="previewFilename"></div>
+            </div>
+
+            <!-- زر العودة للكاميرا المباشرة -->
+            <div class="resume-cam-row" id="resumeCamRow" style="display:none;">
+                <button type="button" class="btn-resume-cam" id="btnResumeLiveCam">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="23 7 16 12 23 17 23 7"></polygon>
+                        <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+                    </svg>
+                    <span>إعادة تشغيل الكاميرا الحية</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- زر فتح في متصفح سفاري لمستخدمي الآيفون -->
+        <div class="safari-box">
+            <a id="btnSafariGitHub" href="#" target="_blank" rel="noopener noreferrer" class="btn-safari">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" fill="currentColor"></polygon></svg>
+                <span>فتح في متصفح سفاري (Safari للآيفون)</span>
+            </a>
+        </div>
+
+        <div class="controls-row">
+            <button type="button" class="btn-action" id="switchCameraBtn">🔄 تبديل الكاميرا</button>
+            <button type="button" class="btn-action" id="torchBtn" style="display:none;">💡 تشغيل الفلاش</button>
+        </div>
+
+        <div class="status-box" id="statusText">جاري تشغيل الكاميرا الخلفية...</div>
+
+        <a id="backBtn" href="http://r.com" class="btn-back">↩️ العودة لصفحة الدخول (r.com)</a>
+
+        <!-- الفوتر الموحد -->
+        <div class="pronet-unified-footer">
+            <div class="p-line-title">تصميم وتطوير البنية الشبكية والأمن الرقمي تحت إشراف</div>
+            <div class="p-line-company">شركة: <b>برونت كمبيوتر (ProNet Computer)</b> - م/عمار الأسدي</div>
+            <div class="p-line-address">عدن - المعلا - أمام بنك الكريمي - هاتف: <a href="tel:02241004">02-241004</a> | واتساب: <a href="https://wa.me/967775043020" target="_blank">775043020</a></div>
+        </div>
+    </div>
+
+    <!-- كود التشغيل وفك التشفير ومسح الملفات والصور -->
+    <script>
+        const CORAL_SECRET_KEYS = [
+            "ROSE_ADEN_HOTEL_2026_KEY",
+            "ROSE_ADEN_1_SECRET_2026",
+            "PRONET_HOTSPOT_ROSE_2026",
+            "CORAL_ADEN_HOTEL_2026_KEY",
+            "PRONET_HOTSPOT_CORAL_2026",
+            "CORAL#2026#SECRET",
+            "DOLPHIN_RESORT_2026_KEY",
+            "RAH_RoseAden_Hotel_2026_Secure"
+        ];
+
+        function getRouterOrigin() {
+            try {
+                const params = new URLSearchParams(window.location.search);
+                const tthh = params.get("tthh");
+                if (tthh && tthh.trim() !== "") {
+                    return tthh.trim().replace(/\/+$/, "");
+                }
+            } catch(e) {}
+            return "http://r.com";
+        }
+
+        const routerOrigin = getRouterOrigin();
+        document.getElementById("backBtn").href = routerOrigin;
+        document.getElementById("btnSafariGitHub").href = window.location.href;
+
+        function xorDecrypt(cipherText, secretKey) {
+            try {
+                let binStr = atob(cipherText);
+                let result = "";
+                for (let i = 0; i < binStr.length; i++) {
+                    let charCode = binStr.charCodeAt(i) ^ secretKey.charCodeAt(i % secretKey.length);
+                    result += String.fromCharCode(charCode);
+                }
+                return result;
+            } catch(e) {
+                return null;
+            }
+        }
+
+        function extractCardCredentials(raw) {
+            if (!raw) return null;
+            let text = raw.trim();
+
+            if (text.includes("://") || text.includes("?")) {
+                try {
+                    let parseTarget = text;
+                    if (!text.includes("://")) parseTarget = "http://" + text;
+                    let u = new URL(parseTarget);
+                    let usr = u.searchParams.get("username") || u.searchParams.get("user") || u.searchParams.get("u");
+                    let pwd = u.searchParams.get("password") || u.searchParams.get("pass") || u.searchParams.get("p") || "";
+                    if (usr) return { username: usr, password: pwd };
+                } catch(e) {}
+            }
+
+            for (let key of CORAL_SECRET_KEYS) {
+                let decrypted = xorDecrypt(text, key);
+                if (decrypted && decrypted.length >= 3) {
+                    if (decrypted.includes(":")) {
+                        let parts = decrypted.split(":");
+                        return { username: parts[0], password: parts[1] || "" };
+                    }
+                    if (decrypted.includes(",")) {
+                        let parts = decrypted.split(",");
+                        return { username: parts[0], password: parts[1] || "" };
+                    }
+                    if (/^[a-zA-Z0-9_-]+$/.test(decrypted)) {
+                        return { username: decrypted, password: decrypted };
+                    }
+                }
+            }
+
+            if (text.includes(":")) {
+                let parts = text.split(":");
+                return { username: parts[0].trim(), password: parts[1].trim() };
+            }
+            if (text.includes(",")) {
+                let parts = text.split(",");
+                return { username: parts[0].trim(), password: parts[1].trim() };
+            }
+
+            return { username: text, password: text };
+        }
+
+        let isRedirecting = false;
+        function onScanSuccess(decodedText, decodedResult) {
+            if (isRedirecting) return;
+            isRedirecting = true;
+
+            const statusEl = document.getElementById("statusText");
+            statusEl.innerHTML = "<b style='color:#34d399;'>✅ تم التعرف على الكود بنجاح! جاري فك التشفير والاتصال...</b>";
+
+            if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+
+            const creds = extractCardCredentials(decodedText);
+            if (!creds || !creds.username) {
+                statusEl.innerHTML = "<b style='color:#fb7185;'>⚠️ لم يتم التعرف على كرت صالح من الكود</b>";
+                isRedirecting = false;
+                return;
+            }
+
+            statusEl.innerHTML = `<b style='color:#34d399;'>✨ مرحباً بك! كرت النزيل: (${creds.username})<br>جاري تحويلك لراوتر الفندق...</b>`;
+
+            try {
+                if (html5QrCode && html5QrCode.isScanning) {
+                    html5QrCode.stop().catch(()=>{});
+                }
+            } catch(e) {}
+
+            setTimeout(() => {
+                const target = `${routerOrigin}/?username=${encodeURIComponent(creds.username)}&password=${encodeURIComponent(creds.password)}`;
+                window.location.href = target;
+            }, 600);
+        }
+
+        let html5QrCode = null;
+        let currentFacingMode = "environment";
+        let isFlashOn = false;
+
+        async function initCameraScanner() {
+            try {
+                const statusEl = document.getElementById("statusText");
+                const cameraBox = document.getElementById("cameraBox");
+                const overlay = document.querySelector(".scan-overlay");
+                
+                if (cameraBox) cameraBox.style.display = "block";
+                if (overlay) overlay.style.display = "flex";
+                statusEl.innerHTML = "جاري تشغيل الكاميرا الخلفية...";
+
+                if (!html5QrCode) {
+                    html5QrCode = new Html5Qrcode("reader");
+                }
+
+                if (html5QrCode.isScanning) {
+                    await html5QrCode.stop();
+                }
+
+                const config = {
+                    fps: 20,
+                    qrbox: { width: 230, height: 230 },
+                    aspectRatio: 1.0,
+                    showTorchButtonIfSupported: true
+                };
+
+                await html5QrCode.start(
+                    { facingMode: currentFacingMode },
+                    config,
+                    onScanSuccess,
+                    (errorMessage) => {}
+                );
+
+                statusEl.innerHTML = "🟢 الكاميرا جاهزة! وجّه الكرت نحو المربع";
+                setupTorch();
+            } catch (err) {
+                console.error("Camera start error:", err);
+                const statusEl = document.getElementById("statusText");
+                statusEl.innerHTML = `
+                    <div style="padding:4px;">
+                        <b style="color:#fb7185; display:block; margin-bottom:4px;">⚠️ تعذر فتح الكاميرا المباشرة</b>
+                        <span style="font-size:11px; color:#cbd5e1;">يمكنك استخدام خيار <b>"ألبوم الصور / لقطة شاشة"</b> أدناه لقراءة كرتك فوراً!</span>
+                    </div>
+                `;
+            }
+        }
+
+        async function setupTorch() {
+            const torchBtn = document.getElementById("torchBtn");
+            if (!torchBtn || !html5QrCode) return;
+            try {
+                const track = html5QrCode.getRunningTrackCapabilities();
+                if (track && track.torch) {
+                    torchBtn.style.display = "inline-block";
+                    torchBtn.onclick = async () => {
+                        isFlashOn = !isFlashOn;
+                        await html5QrCode.applyVideoConstraints({
+                            advanced: [{ torch: isFlashOn }]
+                        });
+                        torchBtn.innerHTML = isFlashOn ? "⚡ إطفاء الفلاش" : "💡 تشغيل الفلاش";
+                    };
+                }
+            } catch(e) {}
+        }
+
+        // =========================================================================
+        // معالجة قراءة الـ QR من ملف صورة أو لقطة شاشة (Screenshot / Gallery)
+        // =========================================================================
+        async function handleFileScan(file) {
+            if (!file) return;
+
+            const statusEl = document.getElementById("statusText");
+            const previewBox = document.getElementById("previewBox");
+            const previewImg = document.getElementById("previewImg");
+            const previewFilename = document.getElementById("previewFilename");
+            const resumeRow = document.getElementById("resumeCamRow");
+
+            statusEl.innerHTML = "<b style='color:#38bdf8;'>⏳ جاري معالجة وقراءة لقطة الشاشة / الصورة...</b>";
+
+            // إظهار معاينة الصورة المرفوعة
+            if (previewBox && previewImg && previewFilename) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewImg.src = e.target.result;
+                    previewFilename.textContent = `الملف: ${file.name} (${Math.round(file.size / 1024)} KB)`;
+                    previewBox.style.display = "block";
+                };
+                reader.readAsDataURL(file);
+            }
+
+            // إيقاف الكاميرا لتوفير الموارد
+            try {
+                if (html5QrCode && html5QrCode.isScanning) {
+                    await html5QrCode.stop();
+                }
+            } catch(e) {}
+
+            const overlay = document.querySelector(".scan-overlay");
+            if (overlay) overlay.style.display = "none";
+            if (resumeRow) resumeRow.style.display = "block";
+
+            if (!html5QrCode) {
+                html5QrCode = new Html5Qrcode("reader");
+            }
+
+            try {
+                let decodedText = null;
+                // المحاولة الأولى: المسح القياسي لملف الصورة
+                if (typeof html5QrCode.scanFileV2 === "function") {
+                    const result = await html5QrCode.scanFileV2(file, true);
+                    decodedText = (result && result.decodedText) ? result.decodedText : result;
+                } else {
+                    decodedText = await html5QrCode.scanFile(file, true);
+                }
+
+                if (decodedText) {
+                    onScanSuccess(decodedText);
+                    return;
+                }
+            } catch (err) {
+                console.warn("المسح القياسي لم يجد الرمز، جاري المحاولة بنظام المعالجة المحسنة:", err);
+            }
+
+            // المحاولة الثانية: تحسين تباين لقطة الشاشة وإعادة المسح (Fallback for High-Res Screenshots)
+            try {
+                const img = new Image();
+                const url = URL.createObjectURL(file);
+                img.onload = async function() {
+                    try {
+                        const canvas = document.createElement("canvas");
+                        const ctx = canvas.getContext("2d");
+                        
+                        // تغيير الحجم لتحسين أداء قراءة QR للقطات الشاشة الكبيرة
+                        let w = img.width;
+                        let h = img.height;
+                        const maxDim = 1200;
+                        if (w > maxDim || h > maxDim) {
+                            if (w > h) { h = Math.round(h * (maxDim / w)); w = maxDim; }
+                            else { w = Math.round(w * (maxDim / h)); h = maxDim; }
+                        }
+                        canvas.width = w;
+                        canvas.height = h;
+
+                        // رسم الصورة وتطبيق فلتر التباين للقطات الشاشة
+                        ctx.filter = "contrast(140%) brightness(105%)";
+                        ctx.drawImage(img, 0, 0, w, h);
+
+                        canvas.toBlob(async function(blob) {
+                            try {
+                                const enhancedFile = new File([blob], "enhanced_" + file.name, { type: "image/jpeg" });
+                                let decoded = null;
+                                if (typeof html5QrCode.scanFileV2 === "function") {
+                                    const res2 = await html5QrCode.scanFileV2(enhancedFile, true);
+                                    decoded = (res2 && res2.decodedText) ? res2.decodedText : res2;
+                                } else {
+                                    decoded = await html5QrCode.scanFile(enhancedFile, true);
+                                }
+
+                                if (decoded) {
+                                    onScanSuccess(decoded);
+                                } else {
+                                    throw new Error("No QR found after enhancement");
+                                }
+                            } catch (e2) {
+                                statusEl.innerHTML = `
+                                    <div style="padding:4px;">
+                                        <b style="color:#fb7185; display:block; margin-bottom:4px;">⚠️ تعذر العثور على رمز QR واضح في الصورة</b>
+                                        <span style="font-size:11px; color:#cbd5e1;">يرجى التأكد من وضوح مربع الباركود أو تجربة صورة أخرى أو استخدام الكاميرا المباشرة.</span>
+                                    </div>
+                                `;
+                            }
+                        }, "image/jpeg", 0.9);
+                    } catch(eCanvas) {
+                        statusEl.innerHTML = "<b style='color:#fb7185;'>⚠️ تعذر معالجة الصورة، يرجى تجربة ملف آخر</b>";
+                    }
+                };
+                img.src = url;
+            } catch(eFallback) {
+                statusEl.innerHTML = "<b style='color:#fb7185;'>⚠️ حدث خطأ أثناء معالجة لقطة الشاشة</b>";
+            }
+        }
+
+        // ربط أحداث أزرار الملفات والصور
+        document.getElementById("btnUploadPhoto").addEventListener("click", () => {
+            document.getElementById("qrGalleryInput").click();
+        });
+
+        document.getElementById("btnSnapPhoto").addEventListener("click", () => {
+            document.getElementById("qrCaptureInput").click();
+        });
+
+        document.getElementById("qrGalleryInput").addEventListener("change", function(e) {
+            if (e.target.files && e.target.files.length > 0) {
+                handleFileScan(e.target.files[0]);
+            }
+        });
+
+        document.getElementById("qrCaptureInput").addEventListener("change", function(e) {
+            if (e.target.files && e.target.files.length > 0) {
+                handleFileScan(e.target.files[0]);
+            }
+        });
+
+        document.getElementById("btnResumeLiveCam").addEventListener("click", () => {
+            document.getElementById("previewBox").style.display = "none";
+            document.getElementById("resumeCamRow").style.display = "none";
+            initCameraScanner();
+        });
+
+        document.getElementById("switchCameraBtn").addEventListener("click", async () => {
+            currentFacingMode = (currentFacingMode === "environment") ? "user" : "environment";
+            await initCameraScanner();
+        });
+
+        // تشغيل تلقائي أو فتح ملف مباشر حسب المتغيرات
+        window.addEventListener("DOMContentLoaded", () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const mode = urlParams.get("mode") || urlParams.get("action");
+
+            if (mode === "file" || mode === "gallery" || mode === "upload") {
+                // فتح نافذة اختيار الملف / لقطة الشاشة تلقائياً
+                setTimeout(() => {
+                    const galleryInp = document.getElementById("qrGalleryInput");
+                    if (galleryInp) galleryInp.click();
+                }, 500);
+            } else {
+                initCameraScanner();
+            }
+        });
+    </script>
+</body>
+</html>
